@@ -177,6 +177,10 @@ function webspeech_block_view($delta = '') {
 
         var value = elem.innerHTML;
         if (value === '" . $str_read_content . "') {
+          WebSpeech.setVoice('" . variable_get('webspeech_default_voice', 'content') . '-' . variable_get('webspeech_variant', 'm1') . "');
+          WebSpeech.setSpeedDelta(" . variable_get('webspeech_speed', 175) . ");
+          WebSpeech.setPitchDelta(" . variable_get('webspeech_pitch', 50) . ");
+          WebSpeech.setVolumeDelta(" . variable_get('webspeech_volume', 100) . ");
           WebSpeech.speakHtml('" . variable_get('webspeech_content_id', 'content') . "');
           elem.innerHTML = 'Pause';
           WebSpeech.onfinish = function () {

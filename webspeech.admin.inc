@@ -20,6 +20,50 @@ function webspeech_config($form, &$form_state) {
         'http://wa.eguidedog.net/cgi-bin/ekho.pl'),
   );
 
+
+  $form['variant'] = array(
+    '#type' => 'select',
+    '#title' => t('Default genre setting type'),
+    '#options' => array(
+      '' => t('Normal'),
+      'm1' => t('Male 1'),
+      'm2' => t('Male 2'),
+      'm3' => t('Male 3'),
+      'm4' => t('Male 4'),
+      'm5' => t('Male 5'),
+      'f1' => t('Female 1'),
+      'f2' => t('Female 2'),
+      'f3' => t('Female 3'),
+      'f4' => t('Female 4'),
+      'f5' => t('Female 5'),
+      'klatt' => t('klatt'),
+      'klatt2' => t('klatt2'),
+      'klatt3' => t('klatt3'),
+    ),
+    '#default_value' => variable_get('webspeech_variant', 'm1'),
+  );
+
+  $form['pitch'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Pitch'),
+    '#description' => t('Adjusts the pitch in a range of 0 to 99. The default is 50.'),
+    '#default_value' => variable_get('webspeech_pitch', 50),
+  );
+
+  $form['volume'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Volume'),
+    '#description' => t('Sets amplitude (volume) in a range of 0 to 200. The default is 100.'),
+    '#default_value' => variable_get('webspeech_volume', 100),
+  );
+
+  $form['speed'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Speed'),
+    '#description' => t('Sets the speed in words-per-minute (approximate values for the default English voice, others may differ slightly). The default value is 175. The lower limit is 80. There is no upper limit, but about 500 is probably a practical maximum.'),
+    '#default_value' => variable_get('webspeech_speed', 175),
+  );
+
   $form['voice-setting-type'] = array(
     '#type' => 'radios',
     '#title' => t('Default voice setting type'),
@@ -139,8 +183,20 @@ function webspeech_config($form, &$form_state) {
       else {
         voice = jQuery("#edit-voice-select option:selected").val();
       }
-      
+
+      variant = jQuery("#edit-variant-setting-type option:selected").val();
+      if (variant != "") {
+        voice += "-" + variant;
+      }
+
+      speedDelta = jQuery("#edit-speed").val();
+      pitchDelta = jQuery("#edit-pitch").val();
+      volumeDelta = jQuery("#edit-volume").val();
+
       WebSpeech.setVoice(voice);
+      WebSpeech.setSpeedDelta(speedDelta);
+      WebSpeech.setPitchDelta(pitchDelta);
+      WebSpeech.setVolumeDelta(volumeDelta);
       WebSpeech.speak(jQuery("#edit-test-text").val());
     }', 'inline');
 
@@ -159,6 +215,31 @@ function webspeech_config($form, &$form_state) {
   return $form;
 }
 
+
+function webspeech_config_validate($form, &$form_state) {
+	if(!is_numeric($form_state['values']['pitch']))
+		form_set_error('pitch', t('The "Pitch" value must be a number! What are you doing???'));
+	if($form_state['values']['pitch'] < 0)
+		form_set_error('pitch', t('The "Pitch" value must be greater than or equal to zero.'));
+	if($form_state['values']['pitch'] > 99)
+		form_set_error('pitch', t('The "Pitch" value must be less than or equal to 99.'));
+
+	if(!is_numeric($form_state['values']['volume']))
+		form_set_error('volume', t('The "Volume" value must be a number! What are you doing???'));
+	if($form_state['values']['volume'] < 0)
+		form_set_error('volume', t('The "Volume" value must be greater than or equal to zero.'));
+	if($form_state['values']['volume'] > 200)
+		form_set_error('volume', t('The "Volume" value must be less than or equal to 200.'));
+
+	if(!is_numeric($form_state['values']['speed']))
+		form_set_error('speed', t('The "Speed" value must be a number! What are you doing???'));
+	if($form_state['values']['speed'] < 80)
+		form_set_error('speed', t('The "Speed" value must be greater than or equal to 80.'));
+	if($form_state['values']['speed'] > 500)
+		form_set_error('speed', t('The "Speed" value must be less than or equal to 500.'));
+
+}
+
 /**
  * Submit handler of configuration form.
  */
@@ -166,6 +247,11 @@ function webspeech_config_submit($form, &$form_state) {
   variable_set('webspeech_server_url', $form_state['values']['server']);
   variable_set('webspeech_content_id', $form_state['values']['content-id']);
   variable_set('webspeech_voice_setting_type', $form_state['values']['voice-setting-type']);
+
+  variable_set('webspeech_variant', $form_state['values']['variant']);
+  variable_set('webspeech_pitch', $form_state['values']['pitch']);
+  variable_set('webspeech_volume', $form_state['values']['volume']);
+  variable_set('webspeech_speed', $form_state['values']['speed']);
 
   if ($form_state['values']['voice-setting-type'] == 'select') {
     variable_set('webspeech_default_voice', $form_state['values']['voice-select']);
